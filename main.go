@@ -84,6 +84,6 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	_, err = s.ChannelMessageEditComplex(messageEdit)
 	if err != nil {
 		log.Printf("non-critical error while suppressing embeds: %s\n", err)
-		log.Printf("payload: %v\n", messageEdit)
+		log.Printf("payload: %+v\n", messageEdit)
 	}
 }
