@@ -88,6 +88,7 @@ func suppressEmbeds(s *discordgo.Session, msg *discordgo.Message) error {
 	flags := struct{ flags discordgo.MessageFlags }{flags: msg.Flags | discordgo.MessageFlagsSuppressEmbeds}
 
 	channelMessageEndpoint := discordgo.EndpointChannelMessage(msg.ChannelID, msg.ID)
-	_, err := s.Request("PATCH", channelMessageEndpoint, flags)
+	response, err := s.Request("PATCH", channelMessageEndpoint, flags)
+	log.Println(response)
 	return err
 }
