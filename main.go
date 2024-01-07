@@ -5,7 +5,6 @@ import (
 	"os"
 	"os/signal"
 	"regexp"
-	"slices"
 	"strings"
 	"syscall"
 
@@ -28,6 +27,7 @@ func main() {
 		log.Println("no authentication provided")
 		return
 	}
+
 	discord, err := discordgo.New("Bot " + token)
 	if err != nil {
 		log.Printf("error while trying to authenticate: %s\n", err)
@@ -80,11 +80,10 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	// suppress embeds
 	messageEdit := discordgo.NewMessageEdit(m.ChannelID, m.ID)
-	messageEdit.SetContent(m.Content)
-	messageEdit.SetEmbeds(slices.Clone(m.Embeds))
 	messageEdit.Flags = m.Flags | discordgo.MessageFlagsSuppressEmbeds
 	_, err = s.ChannelMessageEditComplex(messageEdit)
 	if err != nil {
 		log.Printf("non-critical error while suppressing embeds: %s\n", err)
+		log.Printf("payload: %v\n", messageEdit)
 	}
 }
