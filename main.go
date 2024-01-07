@@ -78,13 +78,17 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	err = suppressEmbeds(s, m.Message)
+	err = suppressEmbeds(s, m.Reference())
 	if err != nil {
 		log.Printf("non-critical error while suppressing embeds: %s\n", err)
 	}
 }
 
-func suppressEmbeds(s *discordgo.Session, msg *discordgo.Message) error {
+func suppressEmbeds(s *discordgo.Session, mRef *discordgo.MessageReference) error {
+	msg, err := s.ChannelMessage(mRef.ChannelID, mRef.MessageID)
+	if err != nil {
+		return err
+	}
 	flags := struct{ flags discordgo.MessageFlags }{flags: msg.Flags | discordgo.MessageFlagsSuppressEmbeds}
 
 	channelMessageEndpoint := discordgo.EndpointChannelMessage(msg.ChannelID, msg.ID)
