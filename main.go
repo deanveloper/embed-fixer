@@ -1,0 +1,73 @@
+package main
+
+import (
+	"log"
+	"os"
+	"os/signal"
+	"regexp"
+	"strings"
+	"syscall"
+
+	"github.com/bwmarrin/discordgo"
+)
+
+var urlSelector = regexp.MustCompile("https?://\\S+\\b")
+
+var urlReplacer = strings.NewReplacer(
+	"twitter.com", "fxtwitter.com",
+	"x.com", "fxtwitter.com",
+	"tiktok.com", "tiktxk.com",
+	"instagram.com", "ddinstagram.com",
+)
+
+func main() {
+	token, ok := os.LookupEnv("TOKEN")
+	if !ok {
+		log.Println("no authentication provided")
+		return
+	}
+	discord, err := discordgo.New("Bot " + token)
+	if err != nil {
+		log.Printf("error while trying to authenticate: %s\n", err)
+		return
+	}
+
+	discord.AddHandler(messageCreate)
+	discord.Identify.Intents = discordgo.IntentsGuildMessages
+
+	err = discord.Open()
+	if err != nil {
+		log.Println("error opening connection,", err)
+		return
+	}
+
+	log.Println("Bot is now running, press CTRL-C to exit.")
+	sc := make(chan os.Signal, 1)
+	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
+	<-sc
+
+	// Cleanly close down the Discord session.
+	discord.Close()
+}
+
+func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
+	// ignore own messages
+	if m.Author.ID == s.State.User.ID {
+		return
+	}
+
+	if !strings.Contains(m.Content, "https://") {
+		return
+	}
+
+	withReplacements := urlReplacer.Replace(m.Content)
+	if m.Content == withReplacements {
+		return
+	}
+
+	_, err := s.ChannelMessageSendReply(m.ChannelID, withReplacements, m.Reference())
+	if err != nil {
+		log.Printf("error while sending reply: %s\n", err)
+		return
+	}
+}
