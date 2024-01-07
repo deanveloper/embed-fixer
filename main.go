@@ -81,7 +81,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// suppress embeds
 	messageEdit := discordgo.NewMessageEdit(m.ChannelID, m.ID)
 	messageEdit.SetEmbeds(slices.Clone(m.Embeds))
-	messageEdit.Flags |= discordgo.MessageFlagsSuppressEmbeds
+	messageEdit.Flags = m.Flags | discordgo.MessageFlagsSuppressEmbeds
 	_, err = s.ChannelMessageEditComplex(messageEdit)
 	if err != nil {
 		log.Printf("non-critical error while suppressing embeds: %s\n", err)
