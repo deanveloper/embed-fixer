@@ -18,6 +18,7 @@ var urlReplacer = strings.NewReplacer(
 	"x.com", "fxtwitter.com",
 	"tiktok.com", "tiktxk.com",
 	"instagram.com", "ddinstagram.com",
+	"reddit.com", "rxddit.com",
 )
 
 func main() {
