@@ -60,14 +60,27 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	withReplacements := urlReplacer.Replace(m.Content)
-	if m.Content == withReplacements {
-		return
+	var urlsInMessage = urlSelector.FindAllString(m.Content, -1)
+
+	var mappedUrls []string
+	for _, url := range urlsInMessage {
+		mappedURL := urlReplacer.Replace(url)
+		if url != mappedURL {
+			mappedUrls = append(mappedUrls, mappedURL)
+		}
 	}
 
-	_, err := s.ChannelMessageSendReply(m.ChannelID, withReplacements, m.Reference())
+	_, err := s.ChannelMessageSendReply(m.ChannelID, strings.Join(mappedUrls, " "), m.Reference())
 	if err != nil {
 		log.Printf("error while sending reply: %s\n", err)
 		return
+	}
+
+	// suppress embeds
+	messageEdit := discordgo.NewMessageEdit(m.ChannelID, m.ID)
+	messageEdit.Flags |= discordgo.MessageFlagsSuppressEmbeds
+	_, err = s.ChannelMessageEditComplex(messageEdit)
+	if err != nil {
+		log.Printf("non-critical error while suppressing embeds: %s\n", err)
 	}
 }
