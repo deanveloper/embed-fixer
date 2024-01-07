@@ -78,12 +78,16 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	// suppress embeds
-	messageEdit := discordgo.NewMessageEdit(m.ChannelID, m.ID)
-	messageEdit.Flags = m.Flags | discordgo.MessageFlagsSuppressEmbeds
-	_, err = s.ChannelMessageEditComplex(messageEdit)
+	err = suppressEmbeds(s, m.Message)
 	if err != nil {
 		log.Printf("non-critical error while suppressing embeds: %s\n", err)
-		log.Printf("payload: %+v\n", messageEdit)
 	}
+}
+
+func suppressEmbeds(s *discordgo.Session, msg *discordgo.Message) error {
+	flags := struct{ flags discordgo.MessageFlags }{flags: msg.Flags | discordgo.MessageFlagsSuppressEmbeds}
+
+	channelMessageEndpoint := discordgo.EndpointChannelMessage(msg.ChannelID, msg.ID)
+	_, err := s.Request("PATCH", channelMessageEndpoint, flags)
+	return err
 }
