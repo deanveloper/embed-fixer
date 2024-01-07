@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/signal"
 	"regexp"
+	"slices"
 	"strings"
 	"syscall"
 
@@ -79,6 +80,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	// suppress embeds
 	messageEdit := discordgo.NewMessageEdit(m.ChannelID, m.ID)
+	messageEdit.SetEmbeds(slices.Clone(m.Embeds))
 	messageEdit.Flags |= discordgo.MessageFlagsSuppressEmbeds
 	_, err = s.ChannelMessageEditComplex(messageEdit)
 	if err != nil {
