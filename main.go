@@ -88,24 +88,24 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 	}
 
-	_, err := s.ChannelMessageSendReply(m.ChannelID, strings.Join(mappedUrls, " "), m.Reference())
+	// reply
+	_, err := s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{
+		Content:         strings.Join(mappedUrls, " "),
+		Reference:       m.Reference(),
+		AllowedMentions: &discordgo.MessageAllowedMentions{},
+	})
 	if err != nil {
 		log.Printf("error while sending reply: %s\n", err)
 		return
 	}
 
-	err = suppressEmbeds(s, m.Message)
+	// remove embeds on original msg
+	flags := struct {
+		Flags int `json:"flags"`
+	}{Flags: int(m.Flags | discordgo.MessageFlagsSuppressEmbeds)}
+	channelMessageEndpoint := discordgo.EndpointChannelMessage(m.ChannelID, m.ID)
+	_, err = s.Request("PATCH", channelMessageEndpoint, flags)
 	if err != nil {
 		log.Printf("non-critical error while suppressing embeds: %s\n", err)
 	}
-}
-
-func suppressEmbeds(s *discordgo.Session, msg *discordgo.Message) error {
-	flags := struct {
-		Flags int `json:"flags"`
-	}{Flags: int(msg.Flags | discordgo.MessageFlagsSuppressEmbeds)}
-
-	channelMessageEndpoint := discordgo.EndpointChannelMessage(msg.ChannelID, msg.ID)
-	_, err := s.Request("PATCH", channelMessageEndpoint, flags)
-	return err
 }
