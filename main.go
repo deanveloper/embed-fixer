@@ -36,6 +36,7 @@ func main() {
 
 	discord.AddHandler(messageCreate)
 	discord.Identify.Intents = discordgo.IntentsGuildMessages
+	discord.Debug = true
 
 	err = discord.Open()
 	if err != nil {
@@ -88,10 +89,6 @@ func suppressEmbeds(s *discordgo.Session, msg *discordgo.Message) error {
 	flags := struct{ flags int }{flags: int(msg.Flags | discordgo.MessageFlagsSuppressEmbeds)}
 
 	channelMessageEndpoint := discordgo.EndpointChannelMessage(msg.ChannelID, msg.ID)
-	_, err := s.Request("PATCH", channelMessageEndpoint, flags, func(cfg *discordgo.RequestConfig) {
-		log.Println(cfg.Request.URL)
-		log.Println(cfg.Request.Method)
-		log.Println(cfg.Request.Body)
-	})
+	_, err := s.Request("PATCH", channelMessageEndpoint, flags)
 	return err
 }
