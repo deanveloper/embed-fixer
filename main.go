@@ -78,23 +78,23 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	err = suppressEmbeds(s, m.Reference())
+	err = suppressEmbeds(s, m.Message)
 	if err != nil {
 		log.Printf("non-critical error while suppressing embeds: %s\n", err)
 	}
 }
 
-func suppressEmbeds(s *discordgo.Session, mRef *discordgo.MessageReference) error {
-	msg, err := s.ChannelMessage(mRef.ChannelID, mRef.MessageID)
-	if err != nil {
-		return err
-	}
-	flags := struct{ flags discordgo.MessageFlags }{flags: msg.Flags | discordgo.MessageFlagsSuppressEmbeds}
+func suppressEmbeds(s *discordgo.Session, msg *discordgo.Message) error {
+	messageEdit := discordgo.NewMessageEdit(msg.ChannelID, msg.ID)
+	messageEdit.Flags = msg.Flags | discordgo.MessageFlagsSuppressEmbeds
 
-	channelMessageEndpoint := discordgo.EndpointChannelMessage(msg.ChannelID, msg.ID)
-	response, err := s.Request("PATCH", channelMessageEndpoint, flags)
-	log.Printf("original message: %+v\n", msg)
-	log.Printf("request data: %+v\n", flags)
-	log.Printf("response: %s\n", response)
+	_, err := s.ChannelMessageEditComplex(messageEdit, func(cfg *discordgo.RequestConfig) {
+		log.Println("url: ", cfg.Request.URL)
+		log.Println("method: ", cfg.Request.Method)
+		log.Println("body: ", cfg.Request.Body)
+	})
+	if err != nil {
+		log.Printf("original message: %+v\n", msg)
+	}
 	return err
 }
