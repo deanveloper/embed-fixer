@@ -51,7 +51,6 @@ func main() {
 
 	discord.AddHandler(messageCreate)
 	discord.Identify.Intents = discordgo.IntentsGuildMessages
-	discord.Debug = true
 
 	err = discord.Open()
 	if err != nil {
@@ -78,7 +77,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	var urlsInMessage = urlSelector.FindAllString(m.Content, -1)
+	urlsInMessage := urlSelector.FindAllString(m.Content, -1)
 
 	var mappedUrls []string
 	for _, url := range urlsInMessage {
