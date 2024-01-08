@@ -14,11 +14,26 @@ import (
 var urlSelector = regexp.MustCompile("https?://\\S+\\b")
 
 var urlReplacer = strings.NewReplacer(
-	"twitter.com", "fxtwitter.com",
-	"x.com", "fxtwitter.com",
-	"tiktok.com", "tiktxk.com",
-	"instagram.com", "ddinstagram.com",
-	"reddit.com", "rxddit.com",
+	// twitter
+	"https://twitter.com/", "https://fxtwitter.com/",
+	"https://www.twitter.com/", "https://www.fxtwitter.com/",
+	"https://x.com/", "https://fxtwitter.com/",
+	"https://www.x.com/", "https://www.fxtwitter.com/",
+
+	// tiktok
+	"https://tiktok.com/", "https://tiktxk.com/",
+	"https://www.tiktok.com/", "https://www.tiktxk.com/",
+	"https://vt.tiktok.com/", "https://vt.tiktxk.com/",
+
+	// instagram
+	"https://instagram.com", "https://ddinstagram.com/",
+	"https://www.instagram.com", "https://www.ddinstagram.com/",
+
+	// reddit
+	"https://reddit.com", "https://rxddit.com/",
+	"https://www.reddit.com", "https://www.rxddit.com/",
+	"https://new.reddit.com", "https://new.rxddit.com/",
+	"https://old.reddit.com", "https://old.rxddit.com/",
 )
 
 func main() {
