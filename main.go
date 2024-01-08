@@ -85,14 +85,13 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 }
 
 func suppressEmbeds(s *discordgo.Session, msg *discordgo.Message) error {
-	flags := struct{ flags discordgo.MessageFlags }{flags: msg.Flags | discordgo.MessageFlagsSuppressEmbeds}
+	flags := struct{ flags int }{flags: int(msg.Flags | discordgo.MessageFlagsSuppressEmbeds)}
 
 	channelMessageEndpoint := discordgo.EndpointChannelMessage(msg.ChannelID, msg.ID)
 	_, err := s.Request("PATCH", channelMessageEndpoint, flags, func(cfg *discordgo.RequestConfig) {
 		log.Println(cfg.Request.URL)
 		log.Println(cfg.Request.Method)
 		log.Println(cfg.Request.Body)
-		log.Println(cfg.Client)
 	})
 	return err
 }
