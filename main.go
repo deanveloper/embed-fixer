@@ -26,14 +26,14 @@ var urlReplacer = strings.NewReplacer(
 	"https://vt.tiktok.com/", "https://vt.tiktxk.com/",
 
 	// instagram
-	"https://instagram.com", "https://ddinstagram.com/",
-	"https://www.instagram.com", "https://www.ddinstagram.com/",
+	"https://instagram.com/", "https://ddinstagram.com/",
+	"https://www.instagram.com/", "https://www.ddinstagram.com/",
 
 	// reddit
-	"https://reddit.com", "https://rxddit.com/",
-	"https://www.reddit.com", "https://www.rxddit.com/",
-	"https://new.reddit.com", "https://new.rxddit.com/",
-	"https://old.reddit.com", "https://old.rxddit.com/",
+	"https://reddit.com/", "https://rxddit.com/",
+	"https://www.reddit.com/", "https://www.rxddit.com/",
+	"https://new.reddit.com/", "https://new.rxddit.com/",
+	"https://old.reddit.com/", "https://old.rxddit.com/",
 )
 
 func main() {
