@@ -19,3 +19,10 @@ Maps the following links:
 ## Invite the bot to your server
 
 https://embed-fixer.dean.day/
+
+Requires the following permissions:
+ * Read/Send Messages (so it can tell if a member posts a link, and reply with a fixed version of the URL)
+   * Read/Send Messages in threads (same thing but for threads)
+ * Embed (so it can embed)
+ * Manage Messages (so it can remove the embed from the sender)
+   * If you don't trust the bot, you can remove this permission. However, you may see double embeds on websites that have their own embeds (ie, tiktok)
