@@ -24,6 +24,7 @@ var urlReplacer = strings.NewReplacer(
 	"https://tiktok.com/", "https://tiktxk.com/",
 	"https://www.tiktok.com/", "https://www.tiktxk.com/",
 	"https://vt.tiktok.com/", "https://vt.tiktxk.com/",
+	"https://vm.tiktok.com/", "https://vm.tiktxk.com/",
 
 	// instagram
 	"https://instagram.com/", "https://ddinstagram.com/",
