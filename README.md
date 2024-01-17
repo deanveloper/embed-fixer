@@ -15,3 +15,7 @@ Maps the following links:
 | instagram.com | ddinstagram.com |
 | reddit.com | rxddit.com |
 | tiktok.com | tiktxk.com |
+
+## Invite the bot to your server
+
+https://embed-fixer.dean.day/
