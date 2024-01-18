@@ -58,6 +58,10 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	urlsInMessage := urlSelector.FindAllString(m.Content, -1)
 	mappedURLs := urlmap.MapURLs(urlmap.DomainReplacements, urlmap.DomainFilters, urlsInMessage)
 
+	if len(mappedURLs) == 0 {
+		return
+	}
+
 	// reply
 	_, err := s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{
 		Content:         strings.Join(mappedURLs, " "),
