@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"log/slog"
 	"os"
 	"os/signal"
 	"regexp"
@@ -9,44 +9,21 @@ import (
 	"syscall"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/deanveloper/embed-fixer/urlmap"
 )
 
 var urlSelector = regexp.MustCompile("https?://\\S+\\b")
 
-var urlReplacer = strings.NewReplacer(
-	// twitter
-	"https://twitter.com/", "https://fxtwitter.com/",
-	"https://www.twitter.com/", "https://www.fxtwitter.com/",
-	"https://x.com/", "https://fxtwitter.com/",
-	"https://www.x.com/", "https://www.fxtwitter.com/",
-
-	// tiktok
-	"https://tiktok.com/", "https://tiktxk.com/",
-	"https://www.tiktok.com/", "https://www.tiktxk.com/",
-	"https://vt.tiktok.com/", "https://vt.tiktxk.com/",
-	"https://vm.tiktok.com/", "https://vm.tiktxk.com/",
-
-	// instagram
-	"https://instagram.com/", "https://ddinstagram.com/",
-	"https://www.instagram.com/", "https://www.ddinstagram.com/",
-
-	// reddit
-	"https://reddit.com/", "https://rxddit.com/",
-	"https://www.reddit.com/", "https://www.rxddit.com/",
-	"https://new.reddit.com/", "https://new.rxddit.com/",
-	"https://old.reddit.com/", "https://old.rxddit.com/",
-)
-
 func main() {
 	token, ok := os.LookupEnv("TOKEN")
 	if !ok {
-		log.Println("no authentication provided")
+		slog.Error("no authentication provided")
 		return
 	}
 
 	discord, err := discordgo.New("Bot " + token)
 	if err != nil {
-		log.Printf("error while trying to authenticate: %s\n", err)
+		slog.Error("error while trying to authenticate", slog.Any("error", err))
 		return
 	}
 
@@ -55,11 +32,11 @@ func main() {
 
 	err = discord.Open()
 	if err != nil {
-		log.Println("error opening connection,", err)
+		slog.Error("error opening connection", slog.Any("error", err))
 		return
 	}
 
-	log.Println("Bot is now running, press CTRL-C to exit.")
+	slog.Info("Bot is now running, press CTRL-C to exit.")
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-sc
@@ -79,23 +56,16 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	urlsInMessage := urlSelector.FindAllString(m.Content, -1)
-
-	var mappedUrls []string
-	for _, url := range urlsInMessage {
-		mappedURL := urlReplacer.Replace(url)
-		if url != mappedURL {
-			mappedUrls = append(mappedUrls, mappedURL)
-		}
-	}
+	mappedURLs := urlmap.MapURLs(urlmap.DomainReplacements, urlmap.DomainFilters, urlsInMessage)
 
 	// reply
 	_, err := s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{
-		Content:         strings.Join(mappedUrls, " "),
+		Content:         strings.Join(mappedURLs, " "),
 		Reference:       m.Reference(),
 		AllowedMentions: &discordgo.MessageAllowedMentions{},
 	})
 	if err != nil {
-		log.Printf("error while sending reply: %s\n", err)
+		slog.Error("error while sending reply", slog.Any("error", err))
 		return
 	}
 
@@ -106,6 +76,6 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	channelMessageEndpoint := discordgo.EndpointChannelMessage(m.ChannelID, m.ID)
 	_, err = s.Request("PATCH", channelMessageEndpoint, flags)
 	if err != nil {
-		log.Printf("non-critical error while suppressing embeds: %s\n", err)
+		slog.Error("non-critical error while suppressing embeds", slog.Any("error", err))
 	}
 }
