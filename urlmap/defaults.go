@@ -94,6 +94,7 @@ func isLinkToTikTokPost(link *url.URL) bool {
 		slog.Debug("error while requesting to see if tiktxk link is valid", slog.String("site", "tiktok"), slog.String("url", link.Redacted()), slog.Any("err", err))
 		return false
 	}
+	req.Header.Add("User-Agent", "Embed Fixer Bot")
 
 	res, err := http.DefaultTransport.RoundTrip(req)
 	if err != nil {
