@@ -2,6 +2,8 @@ package urlmap_test
 
 import (
 	"log/slog"
+	"maps"
+	"net/url"
 	"os"
 	"slices"
 	"testing"
@@ -10,8 +12,13 @@ import (
 )
 
 func TestMapURLsWithDefaults(t *testing.T) {
+
+	// override tiktok's domain filter because it performs REST requests and that's not gouda
+	var testableDomainFilters = maps.Clone(urlmap.DomainFilters)
+	testableDomainFilters["tiktok.com"] = func(u *url.URL) bool { return true }
+
 	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug})))
-	actual := urlmap.MapURLs(urlmap.DomainReplacements, urlmap.DomainFilters, []string{
+	actual := urlmap.MapURLs(urlmap.DomainReplacements, testableDomainFilters, []string{
 		"https://example.com",
 		"https://reddit.com/r/subreddit",
 		"https://www.reddit.com/r/aww/comments/90bu6w/heat_index_was_110_degrees_so_we_offered_him_a/",

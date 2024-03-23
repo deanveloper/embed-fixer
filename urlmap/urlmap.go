@@ -8,9 +8,12 @@ import (
 	"golang.org/x/net/publicsuffix"
 )
 
-// MapURLs maps urls
-func MapURLs(domainReplacements map[string]string, domainFilters map[string]func(*url.URL) bool, urls []string) []string {
-
+// MapURLs maps urls.
+//
+//   - `domainReplacements` is a map of domains and their replacements
+//   - `filters` map of domains to a filter function to filter out only certain requests.
+//     The function takes a URL (post-mapping, ie "https://fxtwitter.example/...") and returns true if the URL should be replaced.
+func MapURLs(domainReplacements map[string]string, filters map[string]func(*url.URL) bool, urls []string) []string {
 	var mappedUrls []string
 	for _, stringURL := range urls {
 		parsedURL, err := url.Parse(stringURL)
@@ -30,18 +33,23 @@ func MapURLs(domainReplacements map[string]string, domainFilters map[string]func
 			continue
 		}
 
-		domainFilter, hasDomainFilter := domainFilters[domain]
+		stringMappedURL := strings.Replace(stringURL, domain, mappedDomain, 1)
+		parsedMappedURL, err := url.Parse(stringMappedURL)
+		if err != nil {
+			slog.Error("error while parsing mapped url", slog.String("url", parsedURL.Redacted()), slog.String("mappedURL", stringMappedURL), slog.Any("error", err))
+			continue
+		}
+
+		domainFilter, hasDomainFilter := filters[domain]
 		if !hasDomainFilter {
 			slog.Error("no domain filter found for domain", slog.String("domain", domain), slog.String("url", parsedURL.Redacted()))
 			continue
 		}
-		if !domainFilter(parsedURL) {
+		if !domainFilter(parsedMappedURL) {
 			continue
 		}
-
-		mappedURL := strings.Replace(stringURL, domain, mappedDomain, 1)
-		if stringURL != mappedURL {
-			mappedUrls = append(mappedUrls, mappedURL)
+		if stringURL != stringMappedURL {
+			mappedUrls = append(mappedUrls, stringMappedURL)
 		}
 	}
 
