@@ -2,6 +2,7 @@ package urlmap
 
 import (
 	"context"
+	"encoding/json"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -109,7 +110,14 @@ func isLinkToTikTokPost(link *url.URL) bool {
 		return false
 	}
 
-	// honestly i should look at the body but im too lazy
+	jsonDecoder := json.NewDecoder(res.Body)
+	var parsedResponse TiktxkResponse
+	jsonDecoder.Decode(&parsedResponse)
 
-	return true
+	return parsedResponse.Success
+}
+
+// TiktxkResponse is a struct which describes the success state of a tiktxk response
+type TiktxkResponse struct {
+	Success bool `json:"success"`
 }
