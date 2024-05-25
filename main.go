@@ -156,6 +156,18 @@ func interaction(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	mappedURLs := urlmap.MapURLs(urlmap.DomainReplacements, urlmap.DomainFilters, urlsInMessage)
 
 	if len(mappedURLs) == 0 {
+		err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content:         "No fixable URLs found in " + linksToOriginalMsgs,
+				AllowedMentions: &discordgo.MessageAllowedMentions{},
+				Flags:           discordgo.MessageFlagsEphemeral,
+			},
+		})
+		if err != nil {
+			slog.Error("error occurred while responding to interaction with no fixable URLs", slog.Any("mappedURLs", mappedURLs), slog.Any("interaction", i))
+			return
+		}
 		return
 	}
 
