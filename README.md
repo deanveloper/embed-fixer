@@ -26,3 +26,10 @@ Requires the following permissions:
  * Embed (so it can embed)
  * Manage Messages (so it can remove the embed from the sender)
    * If you don't trust the bot, you can remove this permission. However, you may see double embeds on websites that have their own embeds (ie, tiktok)
+
+## Hosting the bot yourself
+
+```sh
+go build
+TOKEN="yourtoken" ./embed-fixer
+```
