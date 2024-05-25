@@ -8,7 +8,7 @@ import (
 	"golang.org/x/net/publicsuffix"
 )
 
-// MapURLs maps urls.
+// MapURLs maps the URLs according to the replacement and filter rules. Returns the replacement URLs.
 //
 //   - `domainReplacements` is a map of domains and their replacements
 //   - `filters` map of domains to a filter function to filter out only certain requests.
