@@ -20,6 +20,8 @@ func TestMapURLsWithDefaults(t *testing.T) {
 	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug})))
 	actual := urlmap.MapURLs(urlmap.DomainReplacements, testableDomainFilters, []string{
 		"https://example.com",
+		"https://reddit.com",
+		"https://reddit.com/",
 		"https://reddit.com/r/subreddit",
 		"https://www.reddit.com/r/aww/comments/90bu6w/heat_index_was_110_degrees_so_we_offered_him_a/",
 		"https://www.reddit.com/r/aww/s/29898yuaudfh0o97h",

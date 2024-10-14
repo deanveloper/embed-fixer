@@ -73,6 +73,9 @@ func isLinkToInstagramPost(link *url.URL) bool {
 }
 
 func isLinkToRedditPost(link *url.URL) bool {
+	if len(link.Path) < 1 {
+		return false
+	}
 	split := strings.Split(link.Path[1:], "/")
 	if len(split) < 4 {
 		slog.Debug("url too short", slog.String("site", "reddit"), slog.String("url", link.Redacted()))
