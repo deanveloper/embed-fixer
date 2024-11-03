@@ -1,1 +1,4 @@
-embed-fixer
+zig-out
+.zig-cache
+*.private
+*.private.*

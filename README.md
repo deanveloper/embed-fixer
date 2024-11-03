@@ -30,6 +30,6 @@ Requires the following permissions:
 ## Hosting the bot yourself
 
 ```sh
-go build
+zig build
 TOKEN="yourtoken" ./embed-fixer
 ```

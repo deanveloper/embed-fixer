@@ -1,0 +1,20 @@
+.{
+    .name = "embed-fixer",
+    .version = "0.0.0",
+    .minimum_zig_version = "0.13.0",
+
+    .dependencies = .{
+        .deancord = .{
+            .url = "git+https://github.com/deanveloper/deancord.zig#703493ac3e6b61b1a1bd160c10a275f0ac686951",
+            .hash = "122044d6248cb2c93184b5256900986ad60ebe1875c762499906fdc4862a8ddc61c6",
+        },
+    },
+
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+        "LICENSE",
+        "README.md",
+    },
+}
