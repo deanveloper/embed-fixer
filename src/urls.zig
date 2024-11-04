@@ -109,18 +109,15 @@ fn isLinkToTweet(uri: std.Uri) bool {
             0 => {},
             // idx==1 => user. do not need to validate
             1 => {},
-            // idx==2 => tweet id
+            // idx==2 => must be "status"
             2 => {
-                for (path_part) |char| {
-                    if (char < '0' or '9' < char) {
-                        // if it's not a tweet id, don't fix it
-                        return false;
-                    }
+                if (!std.ascii.eqlIgnoreCase(path_part, "status")) {
+                    return false;
                 }
             },
-            // idx==3 => don't care, no more validations
+            // idx==3 => tweet id, don't care
             3 => break,
-            // else => don't care, no more validations
+            // else => don't care
             else => break,
         }
     }
@@ -236,10 +233,10 @@ test "test url mappings" {
         .{ .input = "https://twitter.com/example", .expected = "" },
         .{ .input = "https://www.x.com/example", .expected = "" },
         .{ .input = "https://www.twitter.com/example", .expected = "" },
-        .{ .input = "https://x.com/example/2348570197856", .expected = "-# https://fxtwitter.com/example/2348570197856" },
-        .{ .input = "https://twitter.com/example/2348570197856", .expected = "-# https://fxtwitter.com/example/2348570197856" },
-        .{ .input = "https://www.x.com/example/2348570197856", .expected = "-# https://www.fxtwitter.com/example/2348570197856" },
-        .{ .input = "https://www.twitter.com/example/2348570197856", .expected = "-# https://www.fxtwitter.com/example/2348570197856" },
+        .{ .input = "https://x.com/example/status/2348570197856", .expected = "-# https://fxtwitter.com/example/status/2348570197856" },
+        .{ .input = "https://twitter.com/example/status/2348570197856", .expected = "-# https://fxtwitter.com/example/status/2348570197856" },
+        .{ .input = "https://www.x.com/example/status/2348570197856", .expected = "-# https://www.fxtwitter.com/example/status/2348570197856" },
+        .{ .input = "https://www.twitter.com/example/status/2348570197856", .expected = "-# https://www.fxtwitter.com/example/status/2348570197856" },
         .{ .input = "https://www.twitter.com/example/with_replies", .expected = "" },
         .{ .input = "https://www.x.com/example/with_replies", .expected = "" },
     };

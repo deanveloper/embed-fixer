@@ -198,3 +198,7 @@ fn fmtMessageLink(
 ) MessageLinkFormatter {
     return MessageLinkFormatter{ .data = MessageLinkData{ .guild_id = guild_id, .channel_id = channel_id, .message_id = message_id } };
 }
+
+test {
+    _ = urls;
+}

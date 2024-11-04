@@ -128,3 +128,8 @@ fn onGatewayEvent(
         },
     }
 }
+
+test {
+    _ = Singletons;
+    _ = handlers;
+}
