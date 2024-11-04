@@ -42,36 +42,27 @@ pub fn main() !void {
         }
         startGateway(allocator, &endpoint, token) catch |err| {
             std.log.err("==== UH OH!! ====", .{});
-            std.log.err("error returned from startGateway: {}", .{err});
+            std.log.err("error returned in gateway: {}", .{err});
             if (@errorReturnTrace()) |trace| {
                 std.log.err("{}", .{trace});
-            }
-            switch (err) {
-                error.Fail => return,
-                error.Retry => {
-                    retries += 1;
-                    continue;
-                },
             }
         };
     }
 }
 
-const StartGatewayError = error{ Fail, Retry };
-
-fn startGateway(allocator: std.mem.Allocator, endpoint: *deancord.EndpointClient, token: []const u8) StartGatewayError!void {
-    var gateway = deancord.GatewayClient.initWithRestClient(allocator, endpoint) catch return error.Retry;
+fn startGateway(allocator: std.mem.Allocator, endpoint: *deancord.EndpointClient, token: []const u8) !void {
+    var gateway = try deancord.GatewayClient.initWithRestClient(allocator, endpoint);
     errdefer gateway.deinit();
 
-    const application_id = initializeBot(&gateway, token) catch return error.Fail;
+    const application_id = try initializeBot(&gateway, token);
 
-    _ = handlers.createFixEmbedCommand(endpoint, application_id) catch return error.Fail;
+    _ = try handlers.createFixEmbedCommand(endpoint, application_id);
 
     while (true) {
         const parsed = gateway.readEvent() catch |err| switch (err) {
-            error.EndOfStream, error.ServerClosed => return error.Retry,
+            error.EndOfStream, error.ServerClosed => return err,
             else => {
-                std.log.err("error occurred while reading gateway event: {}", .{err});
+                std.log.err("error occurred while reading gateway event, continuing: {}", .{err});
                 continue;
             },
         };
