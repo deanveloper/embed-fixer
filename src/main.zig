@@ -25,31 +25,66 @@ pub fn main() !void {
     const auth = deancord.Authorization{ .bot = token };
 
     var endpoint = deancord.EndpointClient.init(allocator, auth);
-    var gateway = try deancord.GatewayClient.initWithRestClient(allocator, &endpoint);
-    const application_id = try initializeBot(&gateway, token);
+    defer endpoint.deinit();
 
-    const fix_embed_cmd_id = try handlers.createFixEmbedCommand(&endpoint, application_id);
-    defer handlers.destroyCommand(&endpoint, application_id, fix_embed_cmd_id);
+    var retry_timer = try std.time.Timer.start();
+    var retries: u8 = 0;
 
     while (true) {
-        const parsed = gateway.readEvent() catch |err| {
+        if (retry_timer.read() > 10 * std.time.ns_per_s) {
+            retry_timer.reset();
+            retries = 0;
+        }
+
+        if (retries > 5) {
+            std.log.err("Hit 5 retries within 10 seconds, aborting", .{});
+            return;
+        }
+        startGateway(allocator, &endpoint, token) catch |err| {
+            std.log.err("==== UH OH!! ====", .{});
+            std.log.err("error returned from startGateway: {}", .{err});
+            if (@errorReturnTrace()) |trace| {
+                std.log.err("{}", .{trace});
+            }
             switch (err) {
-                error.EndOfStream, error.ServerClosed => {
-                    return err;
-                },
-                else => {
-                    std.log.err("error occurred while reading gateway event: {}", .{err});
+                error.Fail => return,
+                error.Retry => {
+                    retries += 1;
                     continue;
                 },
             }
         };
-        defer parsed.deinit();
-
-        onGatewayEvent(&endpoint, &gateway, application_id, parsed.value);
     }
 }
 
-fn initializeBot(gateway: *deancord.GatewayClient, token: []const u8) !deancord.model.Snowflake {
+const StartGatewayError = error{ Fail, Retry };
+
+fn startGateway(allocator: std.mem.Allocator, endpoint: *deancord.EndpointClient, token: []const u8) StartGatewayError!void {
+    var gateway = deancord.GatewayClient.initWithRestClient(allocator, endpoint) catch return error.Retry;
+    errdefer gateway.deinit();
+
+    const application_id = initializeBot(&gateway, token) catch return error.Fail;
+
+    _ = handlers.createFixEmbedCommand(endpoint, application_id) catch return error.Fail;
+
+    while (true) {
+        const parsed = gateway.readEvent() catch |err| switch (err) {
+            error.EndOfStream, error.ServerClosed => return error.Retry,
+            else => {
+                std.log.err("error occurred while reading gateway event: {}", .{err});
+                continue;
+            },
+        };
+        defer parsed.deinit();
+
+        onGatewayEvent(endpoint, &gateway, application_id, parsed.value);
+    }
+}
+
+fn initializeBot(
+    gateway: *deancord.GatewayClient,
+    token: []const u8,
+) !deancord.model.Snowflake {
     const ready_parsed = try gateway.authenticate(token, deancord.model.Intents{ .message_content = true, .guild_messages = true });
     defer ready_parsed.deinit();
 
