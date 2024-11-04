@@ -33,15 +33,19 @@ pub fn main() !void {
 
     while (true) {
         const parsed = gateway.readEvent() catch |err| {
-            std.log.err("error occurred while reading gateway event: {}", .{err});
-            continue;
+            switch (err) {
+                error.EndOfStream, error.ServerClosed => {
+                    return err;
+                },
+                else => {
+                    std.log.err("error occurred while reading gateway event: {}", .{err});
+                    continue;
+                },
+            }
         };
         defer parsed.deinit();
 
-        onGatewayEvent(&endpoint, &gateway, application_id, parsed.value) catch |err| {
-            std.log.err("error occurred while handling gateway event: {}", .{err});
-            continue;
-        };
+        onGatewayEvent(&endpoint, &gateway, application_id, parsed.value);
     }
 }
 
@@ -70,7 +74,7 @@ fn onGatewayEvent(
     gateway: *deancord.GatewayClient,
     application_id: deancord.model.Snowflake,
     event: deancord.gateway.ReceiveEvent,
-) !void {
+) void {
     _ = gateway;
     _ = application_id;
     switch (event.d orelse return) {
@@ -78,11 +82,20 @@ fn onGatewayEvent(
             handlers.onMessageCreate(client, msg_event) catch |err| {
                 std.log.err("error occurred while calling onMessageCreate: {}", .{err});
                 std.log.err("context for error: {}", .{std.json.fmt(msg_event, .{})});
+                if (@errorReturnTrace()) |trace| {
+                    std.log.err("{}", .{trace});
+                }
                 return;
             };
         },
         .InteractionCreate => |interaction_event| {
-            try handlers.onFixEmbedCommand(client, interaction_event);
+            handlers.onFixEmbedCommand(client, interaction_event) catch |err| {
+                std.log.err("error occurred while calling onFixEmbedCommand: {}", .{err});
+                std.log.err("context for error: {}", .{std.json.fmt(interaction_event, .{})});
+                if (@errorReturnTrace()) |trace| {
+                    std.log.err("{}", .{trace});
+                }
+            };
         },
         else => {
             // ignore

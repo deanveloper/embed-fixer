@@ -10,7 +10,7 @@ pub fn onMessageCreate(client: *deancord.EndpointClient, event: deancord.gateway
         return;
     }
 
-    const create_msg_resp = try client.createMessage(event.message.channel_id, deancord.rest.endpoints.CreateMessageFormBody{
+    const create_msg_resp = client.createMessage(event.message.channel_id, deancord.rest.endpoints.CreateMessageFormBody{
         .content = response_content.constSlice(),
         .message_reference = .{
             .channel_id = .{ .some = event.message.channel_id },
@@ -19,7 +19,10 @@ pub fn onMessageCreate(client: *deancord.EndpointClient, event: deancord.gateway
             .fail_if_not_exists = .{ .some = false },
         },
         .allowed_mentions = deancord.model.Message.AllowedMentions{ .parse = &.{}, .replied_user = false, .roles = &.{}, .users = &.{} },
-    });
+    }) catch |err| {
+        std.log.err("critical error when creating message: {}", .{err});
+        return err;
+    };
     defer create_msg_resp.deinit();
     switch (create_msg_resp.value()) {
         .ok => {},
@@ -30,9 +33,12 @@ pub fn onMessageCreate(client: *deancord.EndpointClient, event: deancord.gateway
     }
 
     // try to remove embeds on original message
-    const remove_embed_resp = try client.editMessage(event.message.channel_id, event.message.id, deancord.rest.endpoints.EditMessageFormBody{
+    const remove_embed_resp = client.editMessage(event.message.channel_id, event.message.id, deancord.rest.endpoints.EditMessageFormBody{
         .flags = deancord.model.Message.Flags{ .suppress_embeds = true },
-    });
+    }) catch |err| {
+        std.log.err("critical error when suppressing embeds: {}", .{err});
+        return err;
+    };
     defer remove_embed_resp.deinit();
     switch (remove_embed_resp.value()) {
         .ok => {},

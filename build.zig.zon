@@ -5,8 +5,8 @@
 
     .dependencies = .{
         .deancord = .{
-            .url = "git+https://github.com/deanveloper/deancord.zig#703493ac3e6b61b1a1bd160c10a275f0ac686951",
-            .hash = "122044d6248cb2c93184b5256900986ad60ebe1875c762499906fdc4862a8ddc61c6",
+            .url = "git+https://github.com/deanveloper/deancord.zig#a5d70efd95bba02ee2aefbef7d011be64494dd95",
+            .hash = "122036273065f921c79d27074a9b895dddd5f26d23b1afacdd1dac29cfa80780d253",
         },
     },
 
