@@ -111,6 +111,8 @@ pub fn createFixEmbedCommand(client: *deancord.EndpointClient, application_id: d
     const result = try client.createGlobalApplicationCommand(application_id, deancord.rest.EndpointClient.CreateGlobalApplicationCommandBody{
         .name = "fix embeds",
         .type = .{ .some = .message },
+        .contexts = .{ .some = &.{ .bot_dm, .guild, .private_channel } },
+        .integration_types = .{ .some = &.{ .guild_install, .user_install } },
     });
 
     defer result.deinit();
@@ -122,6 +124,36 @@ pub fn createFixEmbedCommand(client: *deancord.EndpointClient, application_id: d
             std.log.err("error creating `fix embed` command: {}", .{std.json.fmt(err, .{})});
             return error.DiscordError;
         },
+    }
+}
+
+pub fn destroyAllCommands(client: *deancord.EndpointClient, application_id: deancord.model.Snowflake) void {
+    const get_cmds_result = client.getGlobalApplicationCommands(application_id, null) catch |err| {
+        std.log.err("error while listing commands: {}", .{err});
+        return;
+    };
+    defer get_cmds_result.deinit();
+    const commands = switch (get_cmds_result.value()) {
+        .ok => |cmds| cmds,
+        .err => |err| {
+            std.log.err("error from discord while listing commands: {}", .{err});
+            return;
+        },
+    };
+
+    for (commands) |command| {
+        std.log.info("destroying command '{s}'", .{command.name});
+        const delete_cmd_result = client.deleteGlobalApplicationCommand(application_id, command.id) catch |err| {
+            std.log.err("error deleting command '{s}': {}", .{ command.name, err });
+            return;
+        };
+        switch (delete_cmd_result.value()) {
+            .ok => {},
+            .err => |err| {
+                std.log.err("error from discord while deleting command '{s}': {}", .{ command.name, err });
+                return;
+            },
+        }
     }
 }
 
