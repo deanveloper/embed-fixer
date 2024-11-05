@@ -3,6 +3,11 @@ const deancord = @import("deancord");
 const urls = @import("./urls.zig");
 
 pub fn onMessageCreate(client: *deancord.EndpointClient, event: deancord.gateway.event_data.receive_events.MessageCreate) !void {
+    if (std.mem.containsAtLeast(u8, event.message.content, 2, "||")) {
+        // do nothing if there are spoilers
+        return;
+    }
+
     var response_content = std.BoundedArray(u8, 2048){};
     const replacements = try urls.betterUrls(event.message.content, response_content.writer());
 
