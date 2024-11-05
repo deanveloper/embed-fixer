@@ -65,6 +65,11 @@ pub fn onFixEmbedCommand(
     const resolved_msgs = resolved_data.messages.asSome() orelse return error.TargetNotResolved;
     const target_msg: deancord.model.Message = resolved_msgs.map.get(target_msg_id_str.constSlice()) orelse return error.TargetNotResolved;
 
+    if (std.mem.containsAtLeast(u8, target_msg.content, 2, "||")) {
+        // do nothing if there are spoilers
+        return;
+    }
+
     var response_content = std.BoundedArray(u8, 2048){};
     try response_content.writer().print("Fixing messages for {s}\n", .{fmtMessageLink(application_command.guild_id.asSome(), target_msg.channel_id, target_msg.id)});
     const replacements = try urls.betterUrls(target_msg.content, response_content.writer());
