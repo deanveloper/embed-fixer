@@ -15,29 +15,12 @@ pub fn onMessageCreate(client: *deancord.EndpointClient, event: deancord.gateway
         return;
     }
 
-    const create_msg_resp = client.createMessage(event.message.channel_id, deancord.rest.endpoints.CreateMessageFormBody{
-        .content = response_content.constSlice(),
-        .message_reference = .{
-            .channel_id = .{ .some = event.message.channel_id },
-            .guild_id = event.guild_id,
-            .message_id = .{ .some = event.message.id },
-            .fail_if_not_exists = .{ .some = false },
-        },
-        .allowed_mentions = deancord.model.Message.AllowedMentions{ .parse = &.{}, .replied_user = false, .roles = &.{}, .users = &.{} },
-    }) catch |err| {
-        std.log.err("critical error when creating message: {}", .{err});
-        if (@errorReturnTrace()) |trace| {
-            std.log.err("{}", .{trace});
-        }
-        return err;
-    };
-    defer create_msg_resp.deinit();
-    switch (create_msg_resp.value()) {
-        .ok => {},
-        .err => |discorderr| {
-            std.log.err("unable to send reply: {}", .{std.json.fmt(discorderr, .{})});
-            return error.DiscordError;
-        },
+    var retries: u8 = 0;
+    while (retries < 3) : (retries += 1) {
+        sendGuildMessage(client, event, response_content.constSlice()) catch continue;
+        break;
+    } else {
+        return error.FailedToReply;
     }
 
     // try to remove embeds on original message
@@ -45,6 +28,9 @@ pub fn onMessageCreate(client: *deancord.EndpointClient, event: deancord.gateway
         .flags = deancord.model.Message.Flags{ .suppress_embeds = true },
     }) catch |err| {
         std.log.err("critical error when suppressing embeds: {}", .{err});
+        if (@errorReturnTrace()) |trace| {
+            std.log.err("{}", .{trace});
+        }
         return err;
     };
     defer remove_embed_resp.deinit();
@@ -189,6 +175,33 @@ const MessageLinkData = struct {
     channel_id: deancord.model.Snowflake,
     message_id: deancord.model.Snowflake,
 };
+
+fn sendGuildMessage(client: *deancord.EndpointClient, event: deancord.gateway.event_data.receive_events.MessageCreate, content: []const u8) !void {
+    const response = client.createMessage(event.message.channel_id, deancord.rest.endpoints.CreateMessageFormBody{
+        .content = content,
+        .message_reference = .{
+            .channel_id = .{ .some = event.message.channel_id },
+            .guild_id = event.guild_id,
+            .message_id = .{ .some = event.message.id },
+            .fail_if_not_exists = .{ .some = false },
+        },
+        .allowed_mentions = deancord.model.Message.AllowedMentions{ .parse = &.{}, .replied_user = false, .roles = &.{}, .users = &.{} },
+    }) catch |err| {
+        std.log.err("critical error when creating message: {}", .{err});
+        if (@errorReturnTrace()) |trace| {
+            std.log.err("{}", .{trace});
+        }
+        return err;
+    };
+    defer response.deinit();
+    switch (response.value()) {
+        .ok => {},
+        .err => |discorderr| {
+            std.log.err("unable to send reply: {}", .{std.json.fmt(discorderr, .{})});
+            return error.DiscordError;
+        },
+    }
+}
 
 fn messageLinkFormatter(
     data: MessageLinkData,
