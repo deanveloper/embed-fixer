@@ -26,6 +26,9 @@ pub fn onMessageCreate(client: *deancord.EndpointClient, event: deancord.gateway
         .allowed_mentions = deancord.model.Message.AllowedMentions{ .parse = &.{}, .replied_user = false, .roles = &.{}, .users = &.{} },
     }) catch |err| {
         std.log.err("critical error when creating message: {}", .{err});
+        if (@errorReturnTrace()) |trace| {
+            std.log.err("{}", .{trace});
+        }
         return err;
     };
     defer create_msg_resp.deinit();
