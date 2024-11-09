@@ -29,7 +29,7 @@ pub fn onMessageCreate(client: *deancord.EndpointClient, event: deancord.gateway
     }) catch |err| {
         std.log.err("critical error when suppressing embeds: {}", .{err});
         if (@errorReturnTrace()) |trace| {
-            std.log.err("{}", .{trace});
+            std.debug.dumpStackTrace(trace.*);
         }
         return err;
     };
@@ -189,7 +189,7 @@ fn sendGuildMessage(client: *deancord.EndpointClient, event: deancord.gateway.ev
     }) catch |err| {
         std.log.err("critical error when creating message: {}", .{err});
         if (@errorReturnTrace()) |trace| {
-            std.log.err("{}", .{trace});
+            std.debug.dumpStackTrace(trace.*);
         }
         return err;
     };

@@ -44,7 +44,7 @@ pub fn main() !void {
             std.log.err("==== UH OH!! ====", .{});
             std.log.err("error returned in gateway: {}", .{err});
             if (@errorReturnTrace()) |trace| {
-                std.log.err("{}", .{trace});
+                std.debug.dumpStackTrace(trace.*);
             }
         };
     }
@@ -109,7 +109,7 @@ fn onGatewayEvent(
                 std.log.err("error occurred while calling onMessageCreate: {}", .{err});
                 std.log.err("context for error: {}", .{std.json.fmt(msg_event, .{})});
                 if (@errorReturnTrace()) |trace| {
-                    std.log.err("{}", .{trace});
+                    std.debug.dumpStackTrace(trace.*);
                 }
                 return;
             };
@@ -119,7 +119,7 @@ fn onGatewayEvent(
                 std.log.err("error occurred while calling onFixEmbedCommand: {}", .{err});
                 std.log.err("context for error: {}", .{std.json.fmt(interaction_event, .{})});
                 if (@errorReturnTrace()) |trace| {
-                    std.log.err("{}", .{trace});
+                    std.debug.dumpStackTrace(trace.*);
                 }
             };
         },
